@@ -18,6 +18,12 @@ fun applyActivationDeriv(m, activation) {
     return m;
 }
 
+fun cross_entropy_loss(predicted, actual) {
+    var epsilon = 0.00000001;
+    var clipped = matrixClip(predicted, epsilon, 1 - epsilon);
+    var logged = matrixLog(clipped);
+    return -(matrixSum(matrixElementwiseMultiply(actual, logged)) / matrixRows(predicted));
+}
 class DenseLayer {
     init(inputSize, outputSize, activation) {
         this.inputSize = inputSize;
