@@ -38,7 +38,7 @@ class DenseLayer {
     var dW = matrixMul(dZ, matrixTranspose(this.lastInput));
     var dInput = matrixMul(matrixTranspose(this.weights), dZ);
     this.weights = matrixSub(this.weights, matrixScale(dW, learningRate));
-    this.bias = matrixSub(this.bias, matrixScale(matrixColSum(dZ), learningRate));
+    this.bias = matrixSub(this.bias, matrixScale(dZ, learningRate));
     return dInput;
     }
 }
