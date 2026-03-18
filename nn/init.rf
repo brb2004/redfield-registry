@@ -27,6 +27,11 @@ class DenseLayer {
         if (activation == "sigmoid") scale = 4.0;
         this.weights = matrixRandom(outputSize, inputSize, -scale, scale);
         this.bias = matrixRandom(outputSize, 1, -0.1, 0.1);
+        this.mW = matrixNew(outputSize, inputSize);
+        this.vW = matrixNew(outputSize, inputSize);
+        this.mB = matrixNew(outputSize, 1);
+        this.vB = matrixNew(outputSize, 1);
+        this.t = 0;
     }
 
     forward(input) {
@@ -42,6 +47,28 @@ class DenseLayer {
         var dInput = matrixMul(matrixTranspose(this.weights), dZ);
         this.weights = matrixSub(this.weights, matrixScale(dW, learningRate));
         this.bias = matrixSub(this.bias, matrixScale(dZ, learningRate));
+        return dInput;
+    }
+
+    adamUpdate(delta, learningRate, beta1, beta2, epsilon) {
+        this.t = this.t + 1;
+        var dZ = matrixElementwiseMultiply(delta, applyActivationDeriv(this.lastOutput, this.activation));
+        var dW = matrixMul(dZ, matrixTranspose(this.lastInput));
+        var dInput = matrixMul(matrixTranspose(this.weights), dZ);
+
+        this.mW = matrixAdd(matrixScale(this.mW, beta1), matrixScale(dW, 1 - beta1));
+        this.vW = matrixAdd(matrixScale(this.vW, beta2), matrixScale(matrixElementwiseMultiply(dW, dW), 1 - beta2));
+        this.mB = matrixAdd(matrixScale(this.mB, beta1), matrixScale(dZ, 1 - beta1));
+        this.vB = matrixAdd(matrixScale(this.vB, beta2), matrixScale(matrixElementwiseMultiply(dZ, dZ), 1 - beta2));
+
+        var mWc = matrixScale(this.mW, 1 / (1 - beta1));
+        var vWc = matrixScale(this.vW, 1 / (1 - beta2));
+        var mBc = matrixScale(this.mB, 1 / (1 - beta1));
+        var vBc = matrixScale(this.vB, 1 / (1 - beta2));
+
+        this.weights = matrixSub(this.weights, matrixScale(matrixDivide(mWc, matrixAddScalar(matrixSqrt(vWc), epsilon)), learningRate));
+        this.bias = matrixSub(this.bias, matrixScale(matrixDivide(mBc, matrixAddScalar(matrixSqrt(vBc), epsilon)), learningRate));
+
         return dInput;
     }
 }
@@ -108,4 +135,31 @@ class Network {
             epoch = epoch + 1;
         }
     }
+    trainAdam(data, labels, learningRate, epochs, logEvery) {
+    var beta1 = 0.9;
+    var beta2 = 0.999;
+    var epsilon = 0.00000001;
+    var epoch = 0;
+    while (epoch < epochs) {
+        var i = 0;
+        var totalLoss = 0;
+        while (i < arrayLength(data)) {
+            var input = arrayGet(data, i);
+            var label = arrayGet(labels, i);
+            var predicted = this.forward(input);
+            totalLoss = totalLoss + mse_loss(predicted, label);
+            var delta = matrixSub(predicted, label);
+            var j = arrayLength(this.layers) - 1;
+            while (j >= 0) {
+                delta = arrayGet(this.layers, j).adamUpdate(delta, learningRate, beta1, beta2, epsilon);
+                j = j - 1;
+            }
+            i = i + 1;
+        }
+        if (mod(epoch, logEvery) == 0) {
+            print "Epoch " + numToString(epoch) + " loss: " + numToString(totalLoss / arrayLength(data));
+        }
+        epoch = epoch + 1;
+    }
+}
 }
