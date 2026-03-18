@@ -13,11 +13,10 @@ fun applyActivation(matrix, activation) {
 
 fun applyActivationDeriv(matrix, activation) {
     if (activation == "relu") return matrixReluDeriv(matrix);
-    if (activation == "sigmoid") return matrixSigmoidDeriv(matrix);
+    if (activation == "sigmoid") return matrixSigmoidDerivOutput(matrix);
     if (activation == "tanh") return matrixTanhDeriv(matrix);
     return matrix;
 }
-
 class DenseLayer {
      init(inputSize, outputSize, activation) {
         this.inputSize = inputSize;
