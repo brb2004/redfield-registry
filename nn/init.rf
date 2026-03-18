@@ -1,0 +1,106 @@
+fun mse_loss(predicted, actual) {
+    var diff = matrixSub(predicted, actual);
+    var sq = matrixElementwiseMultiply(diff, diff);
+    return matrixSum(sq) / (2 * matrixRows(predicted));
+}
+
+fun applyActivation(matrix, activation) {
+    if (activation == "relu") return matrixRelu(matrix);
+    if (activation == "sigmoid") return matrixSigmoid(matrix);
+    if (activation == "tanh") return matrixTanh(matrix);
+    return matrix;
+}
+
+fun applyActivationDeriv(matrix, activation) {
+    if (activation == "relu") return matrixReluDeriv(matrix);
+    if (activation == "sigmoid") return matrixSigmoidDeriv(matrix);
+    if (activation == "tanh") return matrixTanhDeriv(matrix);
+    return matrix;
+}
+
+class DenseLayer {
+    fun init(inputSize, outputSize, activation) {
+        this.inputSize = inputSize;
+        this.outputSize = outputSize;
+        this.activation = activation;
+        this.weights = matrixRandom(outputSize, inputSize, -0.5, 0.5);
+        this.bias = matrixRandom(outputSize, 1, -0.5, 0.5);
+    }
+
+    fun forward(input) {
+        var z = matrixAdd(matrixMul(this.weights, input), this.bias);
+        this.lastInput = input;
+        this.lastZ = z;
+        return applyActivation(z, this.activation);
+    }
+    fun backward(delta, learningRate) {
+    var dZ = matrixElementwiseMultiply(delta, applyActivationDeriv(this.lastZ, this.activation));
+    var dW = matrixMul(dZ, matrixTranspose(this.lastInput));
+    var dInput = matrixMul(matrixTranspose(this.weights), dZ);
+    this.weights = matrixSub(this.weights, matrixScale(dW, learningRate));
+    this.bias = matrixSub(this.bias, matrixScale(matrixColSum(dZ), learningRate));
+    return dInput;
+    }
+}
+
+class Network {
+    fun init(layers) {
+        this.layers = layers;
+    }
+
+    fun addLayer(layer) {
+        arrayPush(this.layers, layer);
+    }
+    fun forward(input) {
+        var output = input;
+        var i = 0;
+        while (i < arrayLength(this.layers)) {
+            output = arrayGet(this.layers, i).forward(output);
+            i = i + 1;
+        }
+        return output;
+    }
+
+    fun backward(predicted, actual, learningRate) {
+        var delta = matrixSub(predicted, actual);
+        var i = arrayLength(this.layers) - 1;
+        while (i >= 0) {
+            delta = arrayGet(this.layers, i).backward(delta, learningRate);
+            i = i - 1;
+        }
+    }
+    fun train(data, labels, learningRate, epochs) {
+    var epoch = 0;
+    while (epoch < epochs) {
+        var i = 0;
+        while (i < arrayLength(data)) {
+            var input = arrayGet(data, i);
+            var label = arrayGet(labels, i);
+            var predicted = this.forward(input);
+            this.backward(predicted, label, learningRate);
+            i = i + 1;
+        }
+        epoch = epoch + 1;
+    }
+}
+
+fun trainVerbose(data, labels, learningRate, epochs, logEvery) {
+    var epoch = 0;
+    while (epoch < epochs) {
+        var i = 0;
+        var totalLoss = 0;
+        while (i < arrayLength(data)) {
+            var input = arrayGet(data, i);
+            var label = arrayGet(labels, i);
+            var predicted = this.forward(input);
+            totalLoss = totalLoss + mse_loss(predicted, label);
+            this.backward(predicted, label, learningRate);
+            i = i + 1;
+        }
+        if (mod(epoch, logEvery) == 0) {
+            print "Epoch " + epoch + " loss: " + (totalLoss / arrayLength(data));
+        }
+        epoch = epoch + 1;
+    }
+}
+}
