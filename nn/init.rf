@@ -19,7 +19,7 @@ fun applyActivationDeriv(matrix, activation) {
 }
 
 class DenseLayer {
-    fun init(inputSize, outputSize, activation) {
+     init(inputSize, outputSize, activation) {
         this.inputSize = inputSize;
         this.outputSize = outputSize;
         this.activation = activation;
@@ -27,13 +27,13 @@ class DenseLayer {
         this.bias = matrixRandom(outputSize, 1, -0.5, 0.5);
     }
 
-    fun forward(input) {
+     forward(input) {
         var z = matrixAdd(matrixMul(this.weights, input), this.bias);
         this.lastInput = input;
         this.lastZ = z;
         return applyActivation(z, this.activation);
     }
-    fun backward(delta, learningRate) {
+     backward(delta, learningRate) {
     var dZ = matrixElementwiseMultiply(delta, applyActivationDeriv(this.lastZ, this.activation));
     var dW = matrixMul(dZ, matrixTranspose(this.lastInput));
     var dInput = matrixMul(matrixTranspose(this.weights), dZ);
@@ -44,14 +44,14 @@ class DenseLayer {
 }
 
 class Network {
-    fun init(layers) {
+     init(layers) {
         this.layers = layers;
     }
 
-    fun addLayer(layer) {
+     addLayer(layer) {
         arrayPush(this.layers, layer);
     }
-    fun forward(input) {
+     forward(input) {
         var output = input;
         var i = 0;
         while (i < arrayLength(this.layers)) {
@@ -61,7 +61,7 @@ class Network {
         return output;
     }
 
-    fun backward(predicted, actual, learningRate) {
+     backward(predicted, actual, learningRate) {
         var delta = matrixSub(predicted, actual);
         var i = arrayLength(this.layers) - 1;
         while (i >= 0) {
@@ -69,7 +69,7 @@ class Network {
             i = i - 1;
         }
     }
-    fun train(data, labels, learningRate, epochs) {
+     train(data, labels, learningRate, epochs) {
     var epoch = 0;
     while (epoch < epochs) {
         var i = 0;
@@ -84,7 +84,7 @@ class Network {
     }
 }
 
-fun trainVerbose(data, labels, learningRate, epochs, logEvery) {
+ trainVerbose(data, labels, learningRate, epochs, logEvery) {
     var epoch = 0;
     while (epoch < epochs) {
         var i = 0;
