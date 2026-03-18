@@ -98,7 +98,7 @@ class Network {
             i = i + 1;
         }
         if (mod(epoch, logEvery) == 0) {
-            print "Epoch " + epoch + " loss: " + (totalLoss / arrayLength(data));
+            print "Epoch " + numToString(epoch) + " loss: " + numToString(totalLoss / arrayLength(data));
         }
         epoch = epoch + 1;
     }
