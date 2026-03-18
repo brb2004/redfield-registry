@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "packages": {
+        "nn": {
+            "repo": "brayd/rf-nn",
+            "branch": "main",
+            "entry": "init.rf"
+        }
+    }
+}
