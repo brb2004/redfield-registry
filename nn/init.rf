@@ -27,19 +27,20 @@ class DenseLayer {
         this.bias = matrixRandom(outputSize, 1, -0.5, 0.5);
     }
 
-     forward(input) {
+    forward(input) {
         var z = matrixAdd(matrixMul(this.weights, input), this.bias);
         this.lastInput = input;
         this.lastZ = z;
-        return applyActivation(z, this.activation);
+        this.lastOutput = applyActivation(z, this.activation);
+        return this.lastOutput;
     }
-     backward(delta, learningRate) {
-    var dZ = matrixElementwiseMultiply(delta, applyActivationDeriv(this.lastZ, this.activation));
-    var dW = matrixMul(dZ, matrixTranspose(this.lastInput));
-    var dInput = matrixMul(matrixTranspose(this.weights), dZ);
-    this.weights = matrixSub(this.weights, matrixScale(dW, learningRate));
-    this.bias = matrixSub(this.bias, matrixScale(dZ, learningRate));
-    return dInput;
+    backward(delta, learningRate) {
+        var dZ = matrixElementwiseMultiply(delta, applyActivationDeriv(this.lastOutput, this.activation));
+        var dW = matrixMul(dZ, matrixTranspose(this.lastInput));
+        var dInput = matrixMul(matrixTranspose(this.weights), dZ);
+        this.weights = matrixSub(this.weights, matrixScale(dW, learningRate));
+        this.bias = matrixSub(this.bias, matrixScale(dZ, learningRate));
+        return dInput;
     }
 }
 
